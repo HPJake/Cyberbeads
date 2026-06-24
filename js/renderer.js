@@ -182,14 +182,16 @@ class Renderer {
     const h = this.canvasH + this.offsetY * 2;
     ctx.clearRect(0, 0, w, h);
 
-    for (let r = 0; r < this.grid.rows; r++) {
-      for (let c = 0; c < this.grid.cols; c++) {
-        const bead = this.grid.grid[r][c];
-        if (!bead) continue;
-        const cx = this.offsetX + c * CONFIG.CELL_PX + CONFIG.CELL_PX / 2;
-        const cy = this.offsetY + r * CONFIG.CELL_PX + CONFIG.CELL_PX / 2;
-        this._drawBeadAt(ctx, cx, cy, bead, r, c);
-      }
+    // Iterate only occupied cells (not all rows × cols)
+    for (const key of this.grid.occupiedCells) {
+      const comma = key.indexOf(',');
+      const r = +key.slice(0, comma);
+      const c = +key.slice(comma + 1);
+      const bead = this.grid.grid[r][c];
+      if (!bead) continue; // safety: shouldn't happen
+      const cx = this.offsetX + c * CONFIG.CELL_PX + CONFIG.CELL_PX / 2;
+      const cy = this.offsetY + r * CONFIG.CELL_PX + CONFIG.CELL_PX / 2;
+      this._drawBeadAt(ctx, cx, cy, bead, r, c);
     }
   }
 

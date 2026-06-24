@@ -6,6 +6,7 @@ class GridModel {
     this.grid = Array.from({ length: rows }, () => Array(cols).fill(null));
     this.history = new HistoryManager();
     this.locked = false;
+    this.occupiedCells = new Set(); // "r,c" keys for cells with beads
   }
 
   getBead(r, c) {
@@ -24,6 +25,7 @@ class GridModel {
     if (!this.canEdit(r, c)) return false;
     if (this.grid[r][c] && this.grid[r][c].color === color && this.grid[r][c].heat === 0 && !this.grid[r][c].ironed) return false;
     this.grid[r][c] = { color, heat: 0, ironed: false };
+    this.occupiedCells.add(`${r},${c}`);
     return true;
   }
 
@@ -32,6 +34,7 @@ class GridModel {
     if (!this.grid[r][c]) return false;
     if (this.grid[r][c].ironed) return false;
     this.grid[r][c] = null;
+    this.occupiedCells.delete(`${r},${c}`);
     return true;
   }
 
@@ -58,10 +61,7 @@ class GridModel {
   }
 
   hasAnyBead() {
-    for (let r = 0; r < this.rows; r++)
-      for (let c = 0; c < this.cols; c++)
-        if (this.grid[r][c]) return true;
-    return false;
+    return this.occupiedCells.size > 0;
   }
 
   resize(rows, cols) {
@@ -78,6 +78,7 @@ class GridModel {
     }
     this.history.clear();
     this.locked = false;
+    this._rebuildOccupiedSet();
   }
 
   clear() {
@@ -85,12 +86,21 @@ class GridModel {
       for (let c = 0; c < this.cols; c++)
         this.grid[r][c] = null;
     this.locked = false;
+    this.occupiedCells.clear();
   }
 
   snapshot() { this.history.push(this); }
 
-  undo() { return this.history.undo(this); }
-  redo() { return this.history.redo(this); }
+  undo() {
+    const ok = this.history.undo(this);
+    if (ok) this._rebuildOccupiedSet();
+    return ok;
+  }
+  redo() {
+    const ok = this.history.redo(this);
+    if (ok) this._rebuildOccupiedSet();
+    return ok;
+  }
   canUndo() { return this.history.canUndo(); }
   canRedo() { return this.history.canRedo(); }
 
@@ -100,6 +110,13 @@ class GridModel {
         if (this.grid[r][c] && this.grid[r][c].heat >= 0.90)
           this.grid[r][c].ironed = true;
     this.locked = true;
+  }
+
+  _rebuildOccupiedSet() {
+    this.occupiedCells.clear();
+    for (let r = 0; r < this.rows; r++)
+      for (let c = 0; c < this.cols; c++)
+        if (this.grid[r][c]) this.occupiedCells.add(`${r},${c}`);
   }
 
   pxToGrid(px, py, ox, oy) {
@@ -155,6 +172,7 @@ class GridModel {
           this.grid[b.r][b.c] = { color: b.color, heat: b.heat || 0, ironed: b.ironed || false };
       }
       this.history.deserialize(data.history);
+      this._rebuildOccupiedSet();
       return data; // Return full data so App can restore app-level state
     } catch (e) { return null; }
   }

@@ -12,6 +12,7 @@ class App {
     this.activeColor = PALETTE[0].hex;
     this.penInkLevel = 1;
     this.beadDirty = true;
+    this.lastBeadDrawTime = 0;
     this.lastFrameTime = 0;
     this.saveTimeout = null;
 
@@ -436,7 +437,7 @@ class App {
     container.addEventListener('wheel', (e) => {
       e.preventDefault();
       const delta = -e.deltaY * 0.001;
-      this.zoomLevel = clamp(this.zoomLevel + delta * this.zoomLevel, 0.5, 3.0);
+      this.zoomLevel = clamp(this.zoomLevel + delta * this.zoomLevel, 0.2, 3.0);
       container.style.transform = `scale(${this.zoomLevel})`;
       showIndicator();
       this._positionSideControls();
@@ -461,7 +462,7 @@ class App {
         const dy = e.touches[0].clientY - e.touches[1].clientY;
         const dist = Math.hypot(dx, dy);
         const scale = dist / initialPinchDist;
-        this.zoomLevel = clamp(initialZoom * scale, 0.5, 3.0);
+        this.zoomLevel = clamp(initialZoom * scale, 0.2, 3.0);
         container.style.transform = `scale(${this.zoomLevel})`;
         showIndicator();
         this._positionSideControls();
@@ -1651,10 +1652,14 @@ class App {
       this.renderer.drawToolCursor(pos.x, pos.y, tool, this.activeColor, this.penInkLevel);
     }
 
-    // Draw bead layer (on dirty)
+    // Draw bead layer (on dirty, throttled outside ironing mode)
     if (this.beadDirty) {
-      this.renderer.drawAllBeads();
-      this.beadDirty = false;
+      const minInterval = this.ironingSys.active ? 0 : CONFIG.BEAD_DRAW_INTERVAL;
+      if (timestamp - this.lastBeadDrawTime >= minInterval) {
+        this.renderer.drawAllBeads();
+        this.beadDirty = false;
+        this.lastBeadDrawTime = timestamp;
+      }
     }
 
     requestAnimationFrame((t) => this._gameLoop(t));

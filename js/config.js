@@ -20,6 +20,7 @@ const CONFIG = {
   SIZZLE_CHANCE: 0.18,
   HUM_VOLUME: 0.10,
   BEAD_DIRTY_THROTTLE: 3,
+  BEAD_DRAW_INTERVAL: 30,   // min ms between drawAllBeads calls (throttle to ~33fps)
   SAVE_DEBOUNCE: 600,
   EXPORT_CELL_PX: 64,
   MAX_FRAME_DT: 50,
