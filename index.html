@@ -13,6 +13,7 @@
 <div id="title">✦ 赛博拼豆 ✦</div>
 
 <button id="mute-btn" title="音效">🔊</button>
+<button class="btn" id="btn-fullscreen" title="全屏" style="display:none;">⛶</button>
 
 <div id="app">
   <!-- Toolbar -->
@@ -52,7 +53,6 @@
         <button class="btn save-opt warn" data-action="delete">🗑 删除存档</button>
       </div>
     </div>
-    <button class="btn" id="btn-fullscreen" title="全屏" style="display:none;">⛶</button>
   </div>
 
   <!-- Ironing Toolbar -->
@@ -67,7 +67,7 @@
 
   <!-- Color Palette -->
   <div id="palette">
-    <button class="btn" id="btn-import-ref" title="导入参考图">⛰️ <span class="btn-text">参考图</span></button>
+    <button class="btn" id="btn-import-ref" title="导入参考图"><span class="btn-icon">⛰️</span> <span class="btn-text">参考图</span></button>
     <div id="palette-selector">
       <div id="palette-current"></div>
       <div id="palette-dropdown"></div>
@@ -319,7 +319,7 @@
 </div>
 
 <!-- ========== DESK ARRANGE BUTTON + LAYER ========== -->
-<button id="btn-desk-arrange" title="布置桌面">🎨 <span class="btn-text-desk">布置桌面</span><span class="btn-text-mob">布置</span></button>
+<button id="btn-desk-arrange" title="布置桌面">🎨</button>
 <div id="desk-items-layer"></div>
 <div id="desk-item-menu">
   <div class="desk-menu-item" data-action="bead-mode">⭕ 豆子效果</div>
