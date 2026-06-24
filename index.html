@@ -18,24 +18,25 @@
   <!-- Toolbar -->
   <div id="toolbar">
     <div class="toolbar-group">
-      <button class="btn" id="btn-undo" title="撤销 (Ctrl+Z)">↩ 撤销</button>
-      <button class="btn" id="btn-redo" title="重做 (Ctrl+Y)">↪ 重做</button>
+      <button class="btn btn-icon-only" id="btn-undo" title="撤销 (Ctrl+Z)">↩ <span class="btn-text">撤销</span></button>
+      <button class="btn btn-icon-only" id="btn-redo" title="重做 (Ctrl+Y)">↪ <span class="btn-text">重做</span></button>
     </div>
     <div class="toolbar-divider"></div>
     <div class="toolbar-group">
-      <button class="btn warn" id="btn-clear">🗑 清空</button>
+      <button class="btn warn btn-icon-only" id="btn-clear">🗑 <span class="btn-text">清空</span></button>
     </div>
     <div class="toolbar-divider"></div>
-    <div class="toolbar-group">
+    <button class="btn btn-grid-toggle" id="btn-grid-toggle" title="网格设置">⚙</button>
+    <div class="toolbar-group grid-group" id="grid-group">
       <span class="grid-size-label">网格</span>
       <input type="range" class="grid-slider" id="grid-slider" min="5" max="100" value="15" step="5">
       <span class="grid-size-label" id="grid-size-val">15</span>
-      <button class="btn" id="btn-resize">调整</button>
+      <button class="btn btn-icon-only" id="btn-resize">↕ <span class="btn-text">调整</span></button>
     </div>
     <div class="toolbar-divider"></div>
-    <button class="btn iron" id="btn-iron">🔥 熨烫</button>
+    <button class="btn iron" id="btn-iron">🔥 <span class="btn-text">熨烫</span></button>
     <div class="export-group">
-      <button class="btn" id="btn-export">📷 导出 ▼</button>
+      <button class="btn" id="btn-export">📷 <span class="btn-text">导出 ▼</span></button>
       <div class="export-menu" id="export-menu">
         <button class="btn export-opt" data-mode="bead">⭕ 豆子效果 (带孔)</button>
         <button class="btn export-opt" data-mode="ironed">🟫 熨烫效果 (扁平)</button>
@@ -44,13 +45,16 @@
     </div>
     <div class="toolbar-divider"></div>
     <div class="export-group">
-      <button class="btn" id="btn-save-mgmt">💾 存档 ▼</button>
+      <button class="btn" id="btn-save-mgmt">💾 <span class="btn-text">存档 ▼</span></button>
       <div class="export-menu" id="save-menu">
         <button class="btn save-opt" data-action="export">📥 导出存档文件</button>
         <button class="btn save-opt" data-action="import">📤 导入存档文件</button>
         <button class="btn save-opt warn" data-action="delete">🗑 删除存档</button>
       </div>
     </div>
+    <div class="toolbar-divider"></div>
+    <button class="btn btn-icon-only" id="btn-import-ref" title="导入参考图">⛰️ <span class="btn-text">参考图</span></button>
+    <button class="btn" id="btn-fullscreen" title="全屏" style="display:none;">⛶</button>
   </div>
 
   <!-- Ironing Toolbar -->
@@ -66,7 +70,6 @@
   <!-- Color Palette -->
   <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
     <div id="palette">
-    <button class="btn" id="btn-import-ref" title="导入参考图" style="height:34px;padding:0 10px;font-size:13px;">⛰️ 参考图</button>
     <div id="palette-selector">
       <div id="palette-current"></div>
       <div id="palette-dropdown"></div>
@@ -319,7 +322,7 @@
 </div>
 
 <!-- ========== DESK ARRANGE BUTTON + LAYER ========== -->
-<button id="btn-desk-arrange" title="布置桌面">🎨 布置桌面</button>
+<button id="btn-desk-arrange" title="布置桌面">🎨 <span class="btn-text">布置桌面</span></button>
 <div id="desk-items-layer"></div>
 <div id="desk-item-menu">
   <div class="desk-menu-item" data-action="bead-mode">⭕ 豆子效果</div>

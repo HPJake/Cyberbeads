@@ -208,6 +208,36 @@ class App {
       document.getElementById('grid-slider').value = this.grid.rows;
       document.getElementById('grid-size-val').textContent = this.grid.rows;
     });
+
+    // Fullscreen toggle (mobile)
+    const fsBtn = document.getElementById('btn-fullscreen');
+    if (fsBtn) {
+      fsBtn.addEventListener('click', () => {
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        } else {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+      });
+      document.addEventListener('fullscreenchange', () => {
+        fsBtn.textContent = document.fullscreenElement ? '⛶' : '⛶';
+      });
+    }
+
+    // Grid settings toggle (mobile)
+    const gridToggle = document.getElementById('btn-grid-toggle');
+    const gridGroup = document.getElementById('grid-group');
+    if (gridToggle && gridGroup) {
+      gridToggle.addEventListener('click', () => {
+        gridGroup.classList.toggle('open');
+      });
+      // Close when clicking outside
+      document.addEventListener('pointerdown', (e) => {
+        if (!gridGroup.contains(e.target) && e.target !== gridToggle) {
+          gridGroup.classList.remove('open');
+        }
+      });
+    }
   }
 
   _initKeyboard() {

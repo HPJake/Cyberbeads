@@ -45,7 +45,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
 #app {
   position: relative; z-index: 5;
   display: flex; flex-direction: column; align-items: center;
-  height: 100vh; padding: 10px 10px 0; overflow-y: auto;
+  height: 100vh;
+  height: 100dvh;
+  min-height: 100dvh;
+  padding: 10px 10px 0;
+  overflow-y: auto;
 }
 
 /* ========== TOOLBAR ========== */
@@ -544,7 +548,11 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
 }
 #zoom-indicator.visible { opacity: 1; }
 
+/* Grid toggle — hidden by default, shown only on mobile */
+.btn-grid-toggle { display: none; }
+
 /* ========== RESPONSIVE ========== */
+/* Tablet (≤600px) — mild compression */
 @media (max-width: 600px) {
   #toolbar { gap: 4px; padding: 4px 8px; }
   .btn { height: 30px; padding: 0 8px; font-size: 11px; border-radius: 8px; }
@@ -552,6 +560,180 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
   #palette { gap: 3px; padding: 4px 6px; }
   .color-swatch { width: 24px; height: 24px; }
   #title { font-size: 14px; top: 8px; left: 10px; }
+}
+
+/* Phone (≤480px) — compact mode */
+@media (max-width: 480px) {
+  /* Title: move to bottom-left, shrink */
+  #title {
+    top: auto; bottom: 8px; left: 8px;
+    font-size: 11px; letter-spacing: 1px;
+    z-index: 16; opacity: 0.55;
+  }
+
+  /* Mute button: shrink */
+  #mute-btn {
+    top: 6px; right: 6px;
+    width: 28px; height: 28px; font-size: 14px;
+  }
+
+  /* Fullscreen button: show */
+  #btn-fullscreen {
+    display: flex !important;
+    position: fixed; top: 6px; right: 40px; z-index: 21;
+    width: 28px; height: 28px; padding: 0;
+    font-size: 15px; border-radius: 50%;
+    align-items: center; justify-content: center;
+  }
+
+  /* App container: tighter */
+  #app {
+    padding: 2px 2px 0;
+  }
+
+  /* Toolbar: compact wrapping */
+  #toolbar {
+    gap: 2px; padding: 4px 6px;
+    border-radius: 10px; margin-bottom: 4px;
+  }
+  #toolbar .btn {
+    height: 28px; padding: 0 6px;
+    font-size: 11px; border-radius: 7px;
+  }
+  #toolbar .toolbar-divider {
+    margin: 0 1px; height: 16px;
+  }
+
+  /* Hide text labels on icon-only buttons */
+  .btn-icon-only .btn-text { display: none; }
+
+  /* Grid toggle button: show on mobile */
+  .btn-grid-toggle {
+    display: flex !important;
+    height: 28px; width: 28px; padding: 0;
+    align-items: center; justify-content: center;
+    font-size: 14px; border-radius: 7px;
+  }
+  /* Grid group: hidden by default */
+  .grid-group {
+    display: none;
+    flex-wrap: wrap; align-items: center; gap: 2px;
+  }
+  .grid-group.open {
+    display: flex;
+  }
+  .grid-slider { width: 44px; height: 5px; }
+  .grid-size-label { font-size: 11px; min-width: 24px; }
+
+  /* Palette: compact with horizontal scroll */
+  #palette {
+    gap: 3px; padding: 4px 5px;
+    margin-bottom: 4px; border-radius: 10px;
+    flex-wrap: nowrap; overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  #palette .color-swatch {
+    width: 22px; height: 22px; flex-shrink: 0;
+  }
+  #palette-selector { flex-shrink: 0; }
+  #palette-current {
+    font-size: 10px; padding: 3px 6px;
+  }
+
+  /* Canvas container */
+  #canvas-container {
+    border-radius: 6px;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.1);
+  }
+
+  /* Tool drawer: smaller cards */
+  #tool-drawer {
+    gap: 10px;
+  }
+  .tool-card {
+    width: 48px; height: 120px;
+  }
+
+  /* Desk arrange button: icon-only circle */
+  #btn-desk-arrange {
+    bottom: 8px; right: 8px;
+    width: 32px; height: 32px; padding: 0;
+    border-radius: 50%; font-size: 15px;
+    z-index: 16;
+  }
+  #btn-desk-arrange .btn-text { display: none; }
+
+  /* Zoom indicator */
+  #zoom-indicator {
+    bottom: 6px; right: 48px;
+    font-size: 10px; padding: 2px 6px;
+  }
+
+  /* Artwork name bar */
+  #artwork-name-bar { padding: 3px 0; }
+  #artwork-name-input {
+    width: 140px; font-size: 12px; height: 24px;
+  }
+
+  /* Side controls (ref + ruler) */
+  #ref-side-controls, #ruler-side-controls {
+    padding: 4px 2px;
+    min-width: 26px; border-radius: 8px;
+    gap: 3px;
+  }
+  #ref-side-controls label, #ruler-side-controls label {
+    font-size: 9px;
+  }
+  #ref-slider-wrap {
+    width: 18px; height: 60px;
+  }
+  #ref-side-controls input[type="checkbox"],
+  #ruler-side-controls input[type="checkbox"] {
+    width: 14px; height: 14px;
+  }
+
+  /* Ironing toolbar */
+  #iron-toolbar {
+    gap: 4px; padding: 4px 6px;
+    flex-wrap: wrap; border-radius: 10px;
+    margin-bottom: 4px;
+  }
+  #iron-toolbar .btn {
+    height: 26px; padding: 0 6px;
+    font-size: 11px; border-radius: 6px;
+  }
+  #iron-temp-bar { width: 50px; height: 6px; }
+
+  /* Modals */
+  .modal-box {
+    padding: 16px 18px; max-width: 92vw;
+  }
+  .modal-box h3 { font-size: 16px; }
+
+  /* Color picker panel */
+  #color-picker-panel {
+    flex-direction: column; gap: 6px; padding: 8px;
+  }
+
+  /* Export preview */
+  #export-preview-box {
+    max-width: 96vw !important;
+  }
+}
+
+/* Phone landscape — even tighter */
+@media (max-width: 480px) and (orientation: landscape) {
+  #app { padding: 1px 4px 0; }
+  #toolbar { padding: 2px 4px; gap: 1px; margin-bottom: 2px; }
+  #toolbar .btn { height: 24px; padding: 0 4px; font-size: 10px; border-radius: 5px; }
+  #palette { padding: 2px 4px; margin-bottom: 2px; }
+  #palette .color-swatch { width: 18px; height: 18px; }
+  .tool-card { height: 90px; width: 40px; }
+  #iron-toolbar { padding: 2px 4px; gap: 2px; }
+  #title { font-size: 10px; bottom: 4px; left: 4px; }
+  #btn-desk-arrange { bottom: 4px; right: 4px; width: 26px; height: 26px; font-size: 13px; }
+  #mute-btn { top: 2px; right: 2px; width: 24px; height: 24px; font-size: 12px; }
+  #btn-fullscreen { top: 2px; right: 30px; width: 24px; height: 24px; font-size: 13px; }
 }
 /* ========== EXPORT PREVIEW MODAL ========== */
 #export-preview-canvas-wrap {
