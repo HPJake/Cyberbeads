@@ -73,6 +73,34 @@ class SoundEngine {
     this._playTone(900, 0.03, 'sine', 0.08);
   }
 
+  playSpill() {
+    if (this.muted) return;
+    this.ensure();
+    const t = this._now();
+    // Short burst of noise + descending tones to simulate beads spilling
+    const duration = 0.4;
+    const sampleRate = this.ctx.sampleRate;
+    const len = Math.floor(sampleRate * duration);
+    const buf = this.ctx.createBuffer(1, len, sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) {
+      const env = Math.max(0, 1 - i / len);
+      data[i] = (Math.random() * 2 - 1) * env * 0.3;
+    }
+    const src = this.ctx.createBufferSource();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+    src.buffer = buf;
+    filter.type = 'lowpass';
+    filter.frequency.setValueAtTime(3000, t);
+    filter.frequency.exponentialRampToValueAtTime(200, t + duration);
+    gain.gain.setValueAtTime(0, t);
+    gain.gain.linearRampToValueAtTime(0.12, t + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + duration);
+    src.connect(filter); filter.connect(gain); gain.connect(this.masterGain);
+    src.start(t); src.stop(t + duration + 0.01);
+  }
+
   startHum() {
     if (!this.ctx || this.muted) return;
     this.ensure();

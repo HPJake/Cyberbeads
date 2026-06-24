@@ -12,6 +12,7 @@
 
 <div id="title">✦ 赛博拼豆 ✦</div>
 
+<button id="info-btn" title="操作说明">i</button>
 <button id="mute-btn" title="音效">🔊</button>
 <button class="btn" id="btn-fullscreen" title="全屏" style="display:none;">⛶</button>
 
@@ -291,6 +292,49 @@
     </div>
   </div>
 </div>
+
+<!-- ========== HELP MODAL ========== -->
+<div class="modal-overlay" id="help-modal">
+  <div class="modal-box" style="max-width:min(95vw,340px);max-height:92vh;">
+    <h3>🖱 操作说明</h3>
+    <div style="font-size:13px;color:#6B5B4A;line-height:1.8;text-align:left;margin:8px 0;">
+      <p style="margin:0 0 6px 0;"><b>🧩 基本操作</b></p>
+      <ul style="margin:0 0 10px 0;padding-left:18px;">
+        <li>选色 → 点击/拖拽放置豆子</li>
+        <li>镊子工具 → 点击擦除豆子</li>
+        <li>滚轮/双指 → 缩放画布</li>
+        <li>拖拽空白区 → 平移画布</li>
+        <li>Ctrl+Z / Ctrl+Y → 撤销/重做</li>
+      </ul>
+      <p style="margin:0 0 6px 0;"><b>🔥 熨烫</b></p>
+      <ul style="margin:0 0 10px 0;padding-left:18px;">
+        <li>点击"熨烫"进入加热模式</li>
+        <li>在豆子上长按/拖拽模拟熨斗</li>
+        <li>✨ 逼真模式 → 波浪扇贝花边</li>
+        <li>✅ 完成定形 → 锁定作品</li>
+      </ul>
+      <p style="margin:0 0 6px 0;"><b>📷 导出</b></p>
+      <ul style="margin:0 0 10px 0;padding-left:18px;">
+        <li>豆子效果（带孔圆柱）</li>
+        <li>熨烫效果（扁平融合）</li>
+        <li>拼豆图纸（色号标注）</li>
+      </ul>
+      <p style="margin:0 0 6px 0;"><b>🎨 布置桌面</b></p>
+      <ul style="margin:0 0 10px 0;padding-left:18px;">
+        <li>将拼豆作品或 PNG 布置在桌面背景</li>
+        <li>拖拽 / 缩放 / 图层管理</li>
+        <li>存档可在 3 种渲染效果间切换</li>
+      </ul>
+      <p style="margin:0;font-size:12px;color:#8B7B6A;">💾 自动保存到浏览器 &nbsp;|&nbsp; ⛰️ 可导入参考图</p>
+    </div>
+    <div class="modal-btns">
+      <button class="btn primary" id="help-close-btn">知道了</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear animation canvas -->
+<canvas id="clear-anim-canvas"></canvas>
 
 <!-- ========== DESK ARRANGE INTRO MODAL ========== -->
 <div class="modal-overlay" id="desk-intro-modal">

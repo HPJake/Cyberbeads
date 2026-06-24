@@ -128,6 +128,19 @@ class App {
       this._showResizeModal();
     });
 
+    // Info button
+    document.getElementById('info-btn').addEventListener('click', () => {
+      document.getElementById('help-modal').classList.add('active');
+    });
+    document.getElementById('help-close-btn').addEventListener('click', () => {
+      document.getElementById('help-modal').classList.remove('active');
+    });
+    document.getElementById('help-modal').addEventListener('click', (e) => {
+      if (e.target === document.getElementById('help-modal')) {
+        document.getElementById('help-modal').classList.remove('active');
+      }
+    });
+
     // Mute
     document.getElementById('mute-btn').addEventListener('click', () => {
       const muted = this.sound.toggleMute();
@@ -176,11 +189,7 @@ class App {
 
     document.getElementById('clear-confirm').addEventListener('click', () => {
       document.getElementById('clear-modal').classList.remove('active');
-      this.grid.snapshot();
-      this.grid.clear();
-      this.onBeadChange();
-      this.grid.save();
-      this.sound.playTick();
+      this._playClearAnimation();
     });
     document.getElementById('clear-cancel').addEventListener('click', () => {
       document.getElementById('clear-modal').classList.remove('active');
@@ -672,6 +681,211 @@ class App {
     if (!this.grid.hasAnyBead()) return;
     document.getElementById('clear-modal').classList.add('active');
     this.sound.playTick();
+  }
+
+  _playClearAnimation() {
+    // ── 1. Collect all beads with viewport coordinates ──────────────────
+    const beadCanvas = this.renderer.beadCanvas;
+    const canvasRect = beadCanvas.getBoundingClientRect();
+    const intW = this.renderer.canvasW + this.renderer.offsetX * 2;
+    const intH = this.renderer.canvasH + this.renderer.offsetY * 2;
+    const scaleX = canvasRect.width / intW;
+    const scaleY = canvasRect.height / intH;
+
+    const toViewport = (r, c) => ({
+      x: canvasRect.left + (this.renderer.offsetX + c * CONFIG.CELL_PX + CONFIG.CELL_PX / 2) * scaleX,
+      y: canvasRect.top  + (this.renderer.offsetY + r * CONFIG.CELL_PX + CONFIG.CELL_PX / 2) * scaleY,
+    });
+
+    const allBeads = [];
+    const beadByKey = {}; // "r,c" → bead info
+    for (const key of this.grid.occupiedCells) {
+      const [r, c] = key.split(',').map(Number);
+      const bead = this.grid.getBead(r, c);
+      if (!bead) continue;
+      const vp = toViewport(r, c);
+      const info = {
+        r, c,
+        origX: vp.x,
+        origY: vp.y,
+        color: bead.color,
+        ironed: bead.ironed,
+        heat: bead.heat || 0,
+      };
+      allBeads.push(info);
+      beadByKey[key] = info;
+    }
+
+    if (allBeads.length === 0) return;
+
+    // ── 2. Separate ironed chunks vs individual beads ──────────────────
+    const isIroned = (b) => b.ironed || b.heat >= 0.92;
+    const ironedSet = new Set();
+    for (const b of allBeads) {
+      if (isIroned(b)) ironedSet.add(`${b.r},${b.c}`);
+    }
+
+    const visited = new Set();
+    const chunks = [];       // { beads: [...], dy: 0, vy: 0 }
+    const individuals = [];  // { ...beadInfo, curY: origY, vy: 0 }
+
+    // BFS to find connected ironed components (4-directional)
+    for (const b of allBeads) {
+      const key = `${b.r},${b.c}`;
+      if (visited.has(key)) continue;
+
+      if (!ironedSet.has(key)) {
+        visited.add(key);
+        individuals.push({ ...b, curY: b.origY, vy: 0 });
+        continue;
+      }
+
+      // BFS for this ironed component
+      const component = [];
+      const queue = [key];
+      visited.add(key);
+
+      while (queue.length > 0) {
+        const cur = queue.shift();
+        const [cr, cc] = cur.split(',').map(Number);
+        const curBead = beadByKey[cur];
+        if (curBead) component.push(curBead);
+
+        for (const [dr, dc] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
+          const nk = `${cr + dr},${cc + dc}`;
+          if (ironedSet.has(nk) && !visited.has(nk)) {
+            visited.add(nk);
+            queue.push(nk);
+          }
+        }
+      }
+
+      if (component.length === 1) {
+        // Single ironed bead — treat as individual
+        individuals.push({ ...component[0], curY: component[0].origY, vy: 0 });
+      } else {
+        // Multi-bead chunk — falls as one piece
+        chunks.push({ beads: component, dy: 0, vy: 0 });
+      }
+    }
+
+    // ── 3. Setup overlay canvas ────────────────────────────────────────
+    const canvas = document.getElementById('clear-anim-canvas');
+    canvas.classList.add('active');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    const ctx = canvas.getContext('2d');
+
+    const R = CONFIG.BEAD_RADIUS * scaleX;
+    const holeRmax = CONFIG.HOLE_RADIUS_MAX * scaleX;
+
+    // Cylindrical bead (matches Renderer._drawCylinderBead)
+    const drawCylinder = (x, y, color, heat) => {
+      const heatFactor = clamp(heat / 0.92, 0, 1);
+      const wallR = R * 0.62 * (1 - heatFactor);
+      const holeR = holeRmax * (1 - clamp(heat / 0.92, 0, 1));
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, R, R * 0.9986, 0, 0, Math.PI * 2);
+      if (wallR > 0.5) ctx.ellipse(0, 0, wallR, wallR * 0.9986, 0, Math.PI * 2, 0, true);
+      ctx.fill();
+      if (wallR > 0.5) {
+        ctx.fillStyle = darkenColor(color, 0.22);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, wallR, wallR * 0.9986, 0, 0, Math.PI * 2);
+        if (holeR > 0.3) ctx.ellipse(0, 0, holeR, holeR * 0.9986, 0, Math.PI * 2, 0, true);
+        ctx.fill();
+      }
+      ctx.restore();
+    };
+
+    // Ironed flat bead (matches drawIronedFlatCell)
+    const drawIronedFlat = (x, y, color, r, c, heat) => {
+      const halfCell = CONFIG.CELL_PX * scaleX / 2;
+      ctx.save();
+      ctx.translate(x - halfCell, y - halfCell);
+      ctx.scale(scaleX, scaleY);
+      drawIronedFlatCell(ctx, this.grid, r, c, color, heat, false, 0, 0);
+      ctx.restore();
+    };
+
+    const drawBead = (b, curY) => {
+      if (isIroned(b)) {
+        drawIronedFlat(b.origX, curY, b.color, b.r, b.c, b.heat);
+      } else {
+        drawCylinder(b.origX, curY, b.color, b.heat);
+      }
+    };
+
+    // ── 4. Draw frame 1: everything at original positions (on overlay) ─
+    for (const chunk of chunks) {
+      for (const b of chunk.beads) {
+        drawBead(b, b.origY);
+      }
+    }
+    for (const b of individuals) {
+      drawBead(b, b.curY);
+    }
+
+    // ── 5. Clear grid + force main canvas redraw (seamless cut) ───────
+    this.grid.snapshot();
+    this.grid.clear();
+    this.grid.save();
+    this.renderer.drawAllBeads(); // force empty bead canvas NOW
+    this.sound.playSpill();
+
+    // ── 6. Animate: free-fall gravity ──────────────────────────────────
+    const gravity = 1200; // px/s²
+    const viewportH = window.innerHeight;
+    let prevTime = null;
+
+    const animate = (timestamp) => {
+      if (prevTime === null) prevTime = timestamp;
+      let dt = (timestamp - prevTime) / 1000;
+      if (dt <= 0) { requestAnimationFrame(animate); return; }
+      if (dt > 0.1) dt = 0.1; // clamp to prevent spiral-of-death
+      prevTime = timestamp;
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      let allGone = true;
+
+      // Update & draw chunks (entire block falls together)
+      for (const chunk of chunks) {
+        chunk.vy += gravity * dt;
+        chunk.dy += chunk.vy * dt;
+        const allOffScreen = chunk.beads.every(b => (b.origY + chunk.dy) > viewportH + R + 60);
+        if (!allOffScreen) {
+          allGone = false;
+          for (const b of chunk.beads) {
+            drawBead(b, b.origY + chunk.dy);
+          }
+        }
+      }
+
+      // Update & draw individual beads
+      for (const b of individuals) {
+        b.vy += gravity * dt;
+        b.curY += b.vy * dt;
+        if (b.curY < viewportH + R + 60) {
+          allGone = false;
+          drawBead(b, b.curY);
+        }
+      }
+
+      if (allGone) {
+        canvas.classList.remove('active');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        this.onBeadChange();
+        return;
+      }
+
+      requestAnimationFrame(animate);
+    };
+
+    requestAnimationFrame(animate);
   }
 
   _showResizeModal() {
