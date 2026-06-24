@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>赛博拼豆 Cyber Beads</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div id="desktop"></div>
+
+<div id="title">✦ 赛博拼豆 ✦</div>
+
+<button id="mute-btn" title="音效">🔊</button>
+
+<div id="app">
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <button class="btn" id="btn-undo" title="撤销 (Ctrl+Z)">↩ 撤销</button>
+      <button class="btn" id="btn-redo" title="重做 (Ctrl+Y)">↪ 重做</button>
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="toolbar-group">
+      <button class="btn warn" id="btn-clear">🗑 清空</button>
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="toolbar-group">
+      <span class="grid-size-label">网格</span>
+      <input type="range" class="grid-slider" id="grid-slider" min="5" max="100" value="15" step="5">
+      <span class="grid-size-label" id="grid-size-val">15</span>
+      <button class="btn" id="btn-resize">调整</button>
+    </div>
+    <div class="toolbar-divider"></div>
+    <button class="btn iron" id="btn-iron">🔥 熨烫</button>
+    <div class="export-group">
+      <button class="btn" id="btn-export">📷 导出 ▼</button>
+      <div class="export-menu" id="export-menu">
+        <button class="btn export-opt" data-mode="bead">⭕ 豆子效果 (带孔)</button>
+        <button class="btn export-opt" data-mode="ironed">🟫 熨烫效果 (扁平)</button>
+        <button class="btn export-opt" data-mode="blueprint">📐 生成图纸</button>
+      </div>
+    </div>
+    <div class="toolbar-divider"></div>
+    <div class="export-group">
+      <button class="btn" id="btn-save-mgmt">💾 存档 ▼</button>
+      <div class="export-menu" id="save-menu">
+        <button class="btn save-opt" data-action="export">📥 导出存档文件</button>
+        <button class="btn save-opt" data-action="import">📤 导入存档文件</button>
+        <button class="btn save-opt warn" data-action="delete">🗑 删除存档</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Ironing Toolbar -->
+  <div id="iron-toolbar">
+    <span style="font-size:14px;color:#8B5030;">🔥 熨烫模式</span>
+    <div id="iron-temp-bar"><div id="iron-temp-fill" style="width:0%"></div></div>
+    <button class="btn" id="btn-realistic">✨ 逼真</button>
+    <button class="btn" id="btn-iron-undo">↩ 熨烫撤销</button>
+    <button class="btn primary" id="btn-iron-finish">✅ 完成定形</button>
+    <button class="btn" id="btn-iron-exit">↩ 退出熨烫</button>
+  </div>
+
+  <!-- Color Palette -->
+  <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+    <div id="palette">
+    <button class="btn" id="btn-import-ref" title="导入参考图" style="height:34px;padding:0 10px;font-size:13px;">⛰️ 参考图</button>
+    <div id="palette-selector">
+      <div id="palette-current"></div>
+      <div id="palette-dropdown"></div>
+    </div>
+    <div id="palette-swatches"></div>
+    <button class="btn" id="btn-custom-color" style="font-size:11px;" title="自定义颜色">🎨 自选色</button>
+  </div>
+  </div>
+
+  <!-- Hidden file input for reference image -->
+  <input type="file" id="ref-file-input" accept="image/*" style="display:none;">
+
+  <!-- Color Picker Panel -->
+  <div id="color-picker-panel">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div id="color-field">
+        <div id="color-field-cursor"></div>
+      </div>
+      <div class="picker-label">饱和度 / 明度</div>
+      <div id="color-preview-box">
+        <div id="color-preview-old"></div>
+        <div id="color-preview-new"></div>
+      </div>
+      <div class="picker-label" style="margin-top:2px;">MARD 色号</div>
+      <div id="mard-input-wrap" style="position:relative;width:150px;height:26px;">
+        <input type="text" id="mard-code-input" placeholder="如 A5" style="width:100%;height:100%;border:1px solid #DDD0B8;border-radius:6px;padding:0 52px 0 8px;font-size:12px;font-family:inherit;outline:none;background:#fff;box-sizing:border-box;">
+        <button class="btn primary" id="mard-confirm-btn" style="position:absolute;right:2px;top:2px;bottom:2px;height:auto;padding:0 6px;font-size:10px;border-radius:4px;line-height:1;">确认</button>
+      </div>
+      <button class="btn" id="picker-eyedropper-btn" title="从屏幕取色" style="width:150px;height:28px;font-size:12px;">💧 屏幕取色</button>
+      <button class="btn primary" id="picker-apply-btn">应用</button>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+      <div id="hue-slider">
+        <div id="hue-slider-cursor"></div>
+      </div>
+      <div class="picker-label">色相</div>
+    </div>
+  </div>
+
+  <!-- Artwork Name Input -->
+  <div id="artwork-name-bar">
+    <div id="artwork-name-frame">
+      <input type="text" id="artwork-name-input" placeholder="给作品取个名字..." maxlength="40">
+    </div>
+  </div>
+
+  <!-- Canvas Area (side controls + canvas) -->
+  <div id="canvas-area">
+    <!-- Reference side controls (left of canvas) -->
+    <div id="ref-side-controls">
+      <label id="ref-toggle-label" title="描画开关">
+        <input type="checkbox" id="ref-toggle"> 描图
+      </label>
+      <div id="ref-slider-wrap">
+        <input type="range" id="ref-opacity-slider" min="0" max="100" value="50" title="透明度">
+      </div>
+      <span id="ref-opacity-val">50%</span>
+      <button class="btn" id="ref-expand-btn" title="展开参考框" style="display:none;"></button>
+      <button class="btn" id="ref-clear-btn" title="清除参考图" style="font-size:11px;padding:0 6px;height:22px;">✕ 清除</button>
+    </div>
+    <!-- Ruler side controls (right of canvas) -->
+    <div id="ruler-side-controls">
+      <label title="数字刻度">
+        <input type="checkbox" id="ruler-toggle"> 刻度
+      </label>
+    </div>
+    <!-- Canvas Stack -->
+    <div id="canvas-container">
+      <canvas id="bg-canvas"></canvas>
+      <canvas id="ref-canvas"></canvas>
+      <canvas id="bead-canvas"></canvas>
+      <canvas id="fx-canvas"></canvas>
+    </div>
+  </div>
+
+  <!-- Desktop Reference Window (floating) -->
+  <div id="desktop-ref-window" style="display:none;">
+    <div id="desktop-ref-frame">
+      <img id="desktop-ref-img" src="" alt="参考图" draggable="false">
+    </div>
+    <button class="btn" id="desktop-ref-close" title="关闭参考窗">×</button>
+  </div>
+</div>
+
+<!-- Tool Drawer (fixed bottom) -->
+<div id="tool-drawer">
+  <div class="tool-card" id="tool-tweezers" data-tool="tweezers">
+    <canvas width="60" height="160"></canvas>
+    <div class="color-dot" style="top:44px;left:17px;display:none;"></div>
+  </div>
+  <div class="tool-card" id="tool-beadpen" data-tool="beadpen">
+    <canvas width="60" height="160"></canvas>
+    <div class="color-dot" style="top:3px;left:24px;display:none;"></div>
+  </div>
+</div>
+
+<!-- Ironing Confirm Modal -->
+<div class="modal-overlay" id="iron-modal">
+  <div class="modal-box">
+    <h3>🔥 准备熨烫？</h3>
+    <p>熨烫后豆子将逐渐融合变平。<br>你可以随时退出熨烫模式继续编辑。</p>
+    <label>
+      <input type="checkbox" id="iron-allow-reheat" checked>
+      允许重新加热修改
+    </label>
+    <div class="modal-btns">
+      <button class="btn primary" id="iron-confirm">开始熨烫</button>
+      <button class="btn" id="iron-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Clear Confirm Modal -->
+<div class="modal-overlay" id="clear-modal">
+  <div class="modal-box">
+    <h3>清空画布</h3>
+    <p>确定要清除所有豆子吗？<br>此操作可以撤销。</p>
+    <div class="modal-btns">
+      <button class="btn warn" id="clear-confirm">确定清空</button>
+      <button class="btn" id="clear-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Resize Confirm Modal -->
+<div class="modal-overlay" id="resize-modal">
+  <div class="modal-box">
+    <h3>调整网格大小</h3>
+    <p>超出新边界的豆子将被<span style="color:#C04030;">裁剪丢弃</span>。<br>确定要调整吗？</p>
+    <div class="modal-btns">
+      <button class="btn warn" id="resize-confirm">确定调整</button>
+      <button class="btn" id="resize-cancel">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reference Crop Modal -->
+<div class="modal-overlay" id="crop-modal">
+  <div class="modal-box" id="crop-modal-box">
+    <h3>✂️ 裁切参考图</h3>
+    <p style="font-size:12px;color:#8B7B6A;margin-bottom:8px;">滚轮缩放 · 拖拽平移 · 方框内为裁切区域 · 网格线 = 画布网格</p>
+    <div id="crop-canvas-wrap">
+      <canvas id="crop-canvas"></canvas>
+      <div id="crop-overlay">
+        <div id="crop-grid-overlay"></div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn primary" id="crop-confirm-btn">确认裁切</button>
+      <button class="btn" id="crop-cancel-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- Continue Save Modal -->
+<div class="modal-overlay" id="continue-modal">
+  <div class="modal-box">
+    <h3>💾 发现未完成的创作</h3>
+    <p>检测到您有一个保存的作品，要继续吗？</p>
+    <p style="font-weight:bold;color:#6B5B4A;margin-bottom:2px;" id="continue-artwork-name"></p>
+    <p style="font-size:12px;color:#B0A090;margin-bottom:12px;" id="continue-save-time"></p>
+    <div class="modal-btns">
+      <button class="btn primary" id="continue-yes">继续创作</button>
+      <button class="btn" id="continue-no">重新开始</button>
+    </div>
+    <div style="margin-top:10px;">
+      <button class="btn warn" id="continue-delete" style="font-size:11px;">🗑 删除存档并重新开始</button>
+    </div>
+  </div>
+</div>
+
+<!-- Blueprint Modal -->
+<div class="modal-overlay" id="blueprint-modal">
+  <div class="modal-box" id="blueprint-modal-box">
+    <h3>📐 拼豆图纸</h3>
+    <div class="blueprint-options">
+      <label><input type="checkbox" id="bp-mirror"> 镜像</label>
+      <label><input type="checkbox" id="bp-show-name"> 显示作品名称</label>
+      <label><input type="checkbox" id="bp-show-author"> 填写作者大名</label>
+    </div>
+    <div id="bp-author-row" style="display:none;">
+      <input type="text" id="bp-author-input" placeholder="请输入作者大名..." maxlength="20">
+      <button class="btn primary" id="bp-author-confirm-btn" style="height:28px;padding:0 10px;font-size:12px;">确定</button>
+    </div>
+    <div id="blueprint-preview">
+      <div class="paper-wrap" id="blueprint-paper">
+        <div class="col-top" id="blueprint-col-top"></div>
+        <div style="display:flex;">
+          <div class="row-left" id="blueprint-row-left"></div>
+          <table class="grid-table" id="blueprint-grid"></table>
+          <div class="row-right" id="blueprint-row-right"></div>
+        </div>
+        <div class="col-bottom" id="blueprint-col-bottom"></div>
+        <div class="color-card" id="blueprint-color-card"></div>
+        <div id="blueprint-text-area" style="display:none; text-align:center; margin-top:8px;">
+          <div id="bp-artwork-name-text" style="font-size:16px;font-weight:bold;color:#000;"></div>
+          <div id="bp-author-name-text" style="font-size:14px;color:#888;margin-top:2px;"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-btns">
+      <button class="btn primary" id="blueprint-export-btn">📷 导出图纸PNG</button>
+      <button class="btn" id="blueprint-close-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== EXPORT PREVIEW MODAL ========== -->
+<div class="modal-overlay" id="export-preview-modal">
+  <div class="modal-box" id="export-preview-box" style="max-width:min(95vw,700px);max-height:92vh;overflow-y:auto;">
+    <h3>📷 导出预览</h3>
+    <div id="export-preview-canvas-wrap">
+      <canvas id="export-preview-canvas"></canvas>
+    </div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#7B6B5A;cursor:pointer;justify-content:center;">
+      <input type="checkbox" id="export-show-bg" checked>
+      包含背景
+    </label>
+    <div class="modal-btns">
+      <button class="btn primary" id="export-confirm-btn">📥 下载PNG</button>
+      <button class="btn" id="export-close-btn">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DESK ARRANGE INTRO MODAL ========== -->
+<div class="modal-overlay" id="desk-intro-modal">
+  <div class="modal-box" style="max-width:min(95vw,420px);max-height:92vh;">
+    <h3>🎨 布置桌面</h3>
+    <div style="font-size:13px;color:#6B5B4A;line-height:1.7;text-align:left;margin:8px 0;">
+      <p style="margin:0 0 8px 0;">在桌面上放置拼豆图案或参考图片，自由布置你的创作空间。</p>
+      <p style="margin:0 0 4px 0;"><b>📂 支持格式：</b></p>
+      <ul style="margin:0 0 8px 0;padding-left:20px;">
+        <li><b>.json</b> — 拼豆存档，可切换三种渲染效果</li>
+        <li><b>.png</b> — 透明背景图片</li>
+      </ul>
+      <p style="margin:0 0 4px 0;"><b>🖱 操作方式：</b></p>
+      <ul style="margin:0 0 8px 0;padding-left:20px;">
+        <li><b>拖拽</b> — 鼠标/手指按住移动</li>
+        <li><b>缩放</b> — 滚轮或双指捏合 (0.5x ~ 3x)</li>
+        <li><b>右键 / 长按</b> — 打开菜单（切换效果 / 图层 / 移除）</li>
+      </ul>
+      <p style="margin:0;font-size:11px;color:#8B7B6A;">💡 桌面图案保存在浏览器中，刷新后自动恢复。</p>
+    </div>
+    <div class="modal-btns">
+      <button class="btn primary" id="desk-intro-upload-btn">📁 上传文件</button>
+      <button class="btn" id="desk-intro-close-btn">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== DESK ARRANGE BUTTON + LAYER ========== -->
+<button id="btn-desk-arrange" title="布置桌面">🎨 布置桌面</button>
+<div id="desk-items-layer"></div>
+<div id="desk-item-menu">
+  <div class="desk-menu-item" data-action="bead-mode">⭕ 豆子效果</div>
+  <div class="desk-menu-item" data-action="flat-normal">🟫 扁平效果（普通）</div>
+  <div class="desk-menu-item" data-action="flat-realistic">✨ 扁平效果（逼真）</div>
+  <div class="desk-menu-item desk-menu-divider"></div>
+  <div class="desk-menu-item" data-action="to-front">⬆ 置最上层</div>
+  <div class="desk-menu-item" data-action="to-back">⬇ 置于最下层</div>
+  <div class="desk-menu-item desk-menu-divider"></div>
+  <div class="desk-menu-item desk-menu-warn" data-action="remove">✕ 移除</div>
+</div>
+<input type="file" id="desk-file-input" accept=".json,.png" style="display:none" multiple>
+
+<div id="zoom-indicator">100%</div>
+
+<!-- Scripts loaded in dependency order -->
+<script src="js/config.js"></script>
+<script src="js/data/mard-colors.js"></script>
+<script src="js/data/palettes.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/sound-engine.js"></script>
+<script src="js/history-manager.js"></script>
+<script src="js/grid-model.js"></script>
+<script src="js/draw-utils.js"></script>
+<script src="js/renderer.js"></script>
+<script src="js/tool-drawer.js"></script>
+<script src="js/input-manager.js"></script>
+<script src="js/ironing-system.js"></script>
+<script src="js/export-manager.js"></script>
+<script src="js/desk-arrangement.js"></script>
+<script src="js/app.js"></script>
+<script src="js/main.js"></script>
+
+</body>
+</html>
