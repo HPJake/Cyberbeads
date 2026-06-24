@@ -52,8 +52,6 @@
         <button class="btn save-opt warn" data-action="delete">🗑 删除存档</button>
       </div>
     </div>
-    <div class="toolbar-divider"></div>
-    <button class="btn" id="btn-import-ref" title="导入参考图">⛰️ <span class="btn-text">参考图</span></button>
     <button class="btn" id="btn-fullscreen" title="全屏" style="display:none;">⛶</button>
   </div>
 
@@ -68,15 +66,14 @@
   </div>
 
   <!-- Color Palette -->
-  <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
-    <div id="palette">
+  <div id="palette">
+    <button class="btn" id="btn-import-ref" title="导入参考图">⛰️ <span class="btn-text">参考图</span></button>
     <div id="palette-selector">
       <div id="palette-current"></div>
       <div id="palette-dropdown"></div>
     </div>
     <div id="palette-swatches"></div>
     <button class="btn" id="btn-custom-color" style="font-size:11px;" title="自定义颜色">🎨 自选色</button>
-  </div>
   </div>
 
   <!-- Hidden file input for reference image -->
@@ -322,7 +319,7 @@
 </div>
 
 <!-- ========== DESK ARRANGE BUTTON + LAYER ========== -->
-<button id="btn-desk-arrange" title="布置桌面">🎨 <span class="btn-text">布置</span></button>
+<button id="btn-desk-arrange" title="布置桌面">🎨 <span class="btn-text-desk">布置桌面</span><span class="btn-text-mob">布置</span></button>
 <div id="desk-items-layer"></div>
 <div id="desk-item-menu">
   <div class="desk-menu-item" data-action="bead-mode">⭕ 豆子效果</div>

@@ -661,6 +661,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
     border-radius: 14px; font-size: 12px;
     z-index: 16;
   }
+  #btn-desk-arrange .btn-text-desk { display: none; }
+  #btn-desk-arrange .btn-text-mob { display: inline; }
 
   /* Zoom indicator */
   #zoom-indicator {
@@ -769,6 +771,7 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
 }
 #btn-desk-arrange:hover { transform: scale(1.06); box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
 #btn-desk-arrange:active { transform: scale(0.95); }
+.btn-text-mob { display: none; }
 
 /* ========== DESK ITEM CONTEXT MENU ========== */
 #desk-item-menu {
