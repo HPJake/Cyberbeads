@@ -562,8 +562,8 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
   #title { font-size: 14px; top: 8px; left: 10px; }
 }
 
-/* Phone (≤480px) — compact mode */
-@media (max-width: 480px) {
+/* Phone (≤480px or landscape with short height) — compact mode */
+@media (max-width: 480px), (orientation: landscape) and (max-height: 500px) {
   /* Title: move to bottom-left, shrink */
   #title {
     top: auto; bottom: 8px; left: 8px;
@@ -571,16 +571,16 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
     z-index: 16; opacity: 0.55;
   }
 
-  /* Mute button: shrink */
+  /* Mute button: below fullscreen */
   #mute-btn {
-    top: 6px; right: 6px;
+    top: 38px; right: 6px;
     width: 28px; height: 28px; font-size: 14px;
   }
 
-  /* Fullscreen button: show */
+  /* Fullscreen button: top-right, above mute */
   #btn-fullscreen {
     display: flex !important;
-    position: fixed; top: 6px; right: 40px; z-index: 21;
+    position: fixed; top: 6px; right: 6px; z-index: 21;
     width: 28px; height: 28px; padding: 0;
     font-size: 15px; border-radius: 50%;
     align-items: center; justify-content: center;
@@ -654,14 +654,13 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
     width: 48px; height: 120px;
   }
 
-  /* Desk arrange button: icon-only circle */
+  /* Desk arrange button: compact pill */
   #btn-desk-arrange {
     bottom: 8px; right: 8px;
-    width: 32px; height: 32px; padding: 0;
-    border-radius: 50%; font-size: 15px;
+    height: 28px; padding: 0 10px;
+    border-radius: 14px; font-size: 12px;
     z-index: 16;
   }
-  #btn-desk-arrange .btn-text { display: none; }
 
   /* Zoom indicator */
   #zoom-indicator {
@@ -721,20 +720,6 @@ html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Segoe UI
   }
 }
 
-/* Phone landscape — even tighter */
-@media (max-width: 480px) and (orientation: landscape) {
-  #app { padding: 1px 4px 0; }
-  #toolbar { padding: 2px 4px; gap: 1px; margin-bottom: 2px; }
-  #toolbar .btn { height: 24px; padding: 0 4px; font-size: 10px; border-radius: 5px; }
-  #palette { padding: 2px 4px; margin-bottom: 2px; }
-  #palette .color-swatch { width: 18px; height: 18px; }
-  .tool-card { height: 90px; width: 40px; }
-  #iron-toolbar { padding: 2px 4px; gap: 2px; }
-  #title { font-size: 10px; bottom: 4px; left: 4px; }
-  #btn-desk-arrange { bottom: 4px; right: 4px; width: 26px; height: 26px; font-size: 13px; }
-  #mute-btn { top: 2px; right: 2px; width: 24px; height: 24px; font-size: 12px; }
-  #btn-fullscreen { top: 2px; right: 30px; width: 24px; height: 24px; font-size: 13px; }
-}
 /* ========== EXPORT PREVIEW MODAL ========== */
 #export-preview-canvas-wrap {
   display: flex; justify-content: center; align-items: center;
