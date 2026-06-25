@@ -27,7 +27,7 @@
 
 操作界面
 
-<img src="UI_computer_1.jpg" alt="UI_computer" />
+<img src="UI_computer_1.png" alt="UI_computer" />
 ---
 
 ## 🖱 操作逻辑
