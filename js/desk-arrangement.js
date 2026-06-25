@@ -232,7 +232,11 @@ class DeskArrangementManager {
           const halfCell = CELL / 2;
           const heat = (mode === 'flat-realistic') ? 1.0 : 0.92;
           // Context already translated to cell center, draw top-left at (-halfCell, -halfCell)
-          drawIronedFlatCell(ctx, tempGrid, r, c, color, heat, mode === 'flat-realistic', -halfCell, -halfCell);
+          try {
+            drawIronedFlatCell(ctx, tempGrid, r, c, color, heat, mode === 'flat-realistic', -halfCell, -halfCell);
+          } catch (err) {
+            console.error(`Desk render: failed drawing bead at (${r}, ${c})`, err);
+          }
         }
 
         ctx.restore();
@@ -561,7 +565,12 @@ class DeskArrangementManager {
     if (itemDef.type !== 'json') return;
     if (!itemDef.saveData) return;
     itemDef.renderMode = mode;
-    itemDef.dataUrl = this._renderJSONToDataURL(itemDef.saveData, mode);
+    try {
+      itemDef.dataUrl = this._renderJSONToDataURL(itemDef.saveData, mode);
+    } catch (err) {
+      console.error('Desk render: _renderJSONToDataURL failed for mode', mode, err);
+      return;
+    }
     if (itemDef._el) {
       const img = itemDef._el.querySelector('img');
       if (img) img.src = itemDef.dataUrl;
