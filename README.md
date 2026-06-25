@@ -27,7 +27,7 @@
 
 操作界面
 
-<img src="UI_computer_1.png" alt="UI_computer" />
+<img src="images/UI_computer_1.png" alt="UI_computer" />
 ---
 
 ## 🖱 操作逻辑
@@ -97,9 +97,9 @@
 
 勾选「🔁 镜像翻转」后，图纸左右镜像输出。适合熨烫后从背面阅读图纸的场景（熨烫面朝下时，背面图案是镜像的）。
 
-![func_blueprint](images/func_blueprint.gif)
+<img src="images/func_blueprint.gif" alt="生成图纸"/>
+<img src="images/Heart_blueprint.png" alt="Sample"/>
 
-![Heart_blueprint](images/Heart_blueprint.png)
 
 ### 存档
 
@@ -114,7 +114,7 @@
 - 拼豆存档可在三种渲染效果间切换
 
 <img src="images/func_desk.gif" alt="布置桌面"/>
----
+
 
 ## 📱 手机端与电脑端的区别
 
