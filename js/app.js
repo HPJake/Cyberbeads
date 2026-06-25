@@ -1928,54 +1928,72 @@ class App {
     }
     this.sound.playTick();
 
-    const rows = this.grid.rows;
-    const cols = this.grid.cols;
-
-    // Build grid data: HEX → MARD code
-    const gridData = [];
-    for (let r = 0; r < rows; r++) {
-      const row = [];
-      for (let c = 0; c < cols; c++) {
-        const bead = this.grid.getBead(r, c);
-        if (bead) {
-          const hex = bead.color.toUpperCase();
-          let code = MARD_HEX_TO_CODE[hex];
-          if (!code) code = findClosestMardCode(bead.color) || hex;
-          row.push({ code, hex: code.startsWith('#') ? code : MARD_COLORS[code] || hex });
-        } else {
-          row.push(null);
-        }
-      }
-      gridData.push(row);
-    }
-
-    // Store for re-render
-    this._bpGridData = gridData;
-    this._bpRows = rows;
-    this._bpCols = cols;
-
     // Read options
     const getOpts = () => ({
       mirror: document.getElementById('bp-mirror').checked,
       showName: document.getElementById('bp-show-name').checked,
       showAuthor: document.getElementById('bp-show-author').checked,
       authorName: document.getElementById('bp-author-input').value.trim(),
+      crop: document.getElementById('bp-crop').checked,
     });
+
+    // Build grid data (supports crop)
+    const buildData = () => {
+      let cropBox = null;
+      if (getOpts().crop) {
+        cropBox = ExportManager.getBeadBoundingBox(this.grid);
+      }
+      const r1 = cropBox ? cropBox.r1 : 0;
+      const c1 = cropBox ? cropBox.c1 : 0;
+      const r2 = cropBox ? cropBox.r2 : this.grid.rows - 1;
+      const c2 = cropBox ? cropBox.c2 : this.grid.cols - 1;
+      const rows = r2 - r1 + 1;
+      const cols = c2 - c1 + 1;
+
+      const gridData = [];
+      for (let r = r1; r <= r2; r++) {
+        const row = [];
+        for (let c = c1; c <= c2; c++) {
+          const bead = this.grid.getBead(r, c);
+          if (bead) {
+            const hex = bead.color.toUpperCase();
+            let code = MARD_HEX_TO_CODE[hex];
+            if (!code) code = findClosestMardCode(bead.color) || hex;
+            row.push({ code, hex: code.startsWith('#') ? code : MARD_COLORS[code] || hex });
+          } else {
+            row.push(null);
+          }
+        }
+        gridData.push(row);
+      }
+      return { gridData, rows, cols, r1, c1 };
+    };
 
     // Render function
     const renderPreview = () => {
-      this._renderBlueprintPreview(gridData, rows, cols, getOpts());
+      const { gridData, rows, cols, r1, c1 } = buildData();
+      this._bpGridData = gridData;
+      this._bpRows = rows;
+      this._bpCols = cols;
+      this._bpCropR1 = r1;
+      this._bpCropC1 = c1;
+      this._renderBlueprintPreview(gridData, rows, cols, r1, c1, getOpts());
+      // Auto-fit uses computed dimensions (not DOM measurement — avoids layout timing bugs)
+      const opts = getOpts();
+      this._fitBlueprintPreview(gridData, rows, cols, opts);
     };
 
     // Wire checkboxes → re-render
     document.getElementById('bp-mirror').checked = false;
     document.getElementById('bp-show-name').checked = false;
     document.getElementById('bp-show-author').checked = false;
+    document.getElementById('bp-crop').checked = false;
     document.getElementById('bp-author-row').style.display = 'none';
     document.getElementById('bp-author-input').value = '';
 
     document.getElementById('bp-mirror').onchange = renderPreview;
     document.getElementById('bp-show-name').onchange = renderPreview;
+    document.getElementById('bp-crop').onchange = renderPreview;
     document.getElementById('bp-show-author').onchange = function () {
       const authorRow = document.getElementById('bp-author-row');
       authorRow.style.display = this.checked ? 'flex' : 'none';
@@ -1989,11 +2007,17 @@ class App {
       if (e.key === 'Enter') renderPreview();
     };
 
+    // Show modal first so layout is available for fit measurement
+    document.getElementById('blueprint-modal').classList.add('active');
+
     // Initial render
     renderPreview();
 
     // Wire export button
-    document.getElementById('blueprint-export-btn').onclick = () => this._exportBlueprint(gridData, rows, cols, getOpts());
+    document.getElementById('blueprint-export-btn').onclick = () => {
+      const { gridData, rows, cols, r1, c1 } = buildData();
+      this._exportBlueprint(gridData, rows, cols, r1, c1, getOpts());
+    };
 
     // Wire close
     document.getElementById('blueprint-close-btn').onclick = () => {
@@ -2004,31 +2028,34 @@ class App {
         document.getElementById('blueprint-modal').classList.remove('active');
       }
     };
-
-    document.getElementById('blueprint-modal').classList.add('active');
   }
 
-  _renderBlueprintPreview(gridData, rows, cols, opts) {
+  _renderBlueprintPreview(gridData, rows, cols, r1 = 0, c1 = 0, opts) {
     const mirror = opts.mirror;
+    const colStart = c1 + 1;
+    const rowStart = r1 + 1;
+    const colEnd = c1 + cols;
+    const rowEnd = r1 + rows;
 
-    // Render rulers (unchanged by mirror — rulers stay as-is)
+    // Render column rulers (use original grid column numbers)
     const renderColRuler = (containerId, start, end) => {
       const el = document.getElementById(containerId);
       el.innerHTML = '<span></span>' + Array.from({ length: cols }, (_, i) =>
         `<span>${start <= end ? start + i : start - i}</span>`
       ).join('');
     };
-    renderColRuler('blueprint-col-top', 1, cols);
-    renderColRuler('blueprint-col-bottom', cols, 1);
+    renderColRuler('blueprint-col-top', colStart, colEnd);
+    renderColRuler('blueprint-col-bottom', colEnd, colStart);
 
+    // Render row rulers (use original grid row numbers)
     const renderRowRuler = (containerId, start, end) => {
       const el = document.getElementById(containerId);
       el.innerHTML = Array.from({ length: rows }, (_, i) =>
         `<div>${start <= end ? start + i : start - i}</div>`
       ).join('');
     };
-    renderRowRuler('blueprint-row-left', 1, rows);
-    renderRowRuler('blueprint-row-right', rows, 1);
+    renderRowRuler('blueprint-row-left', rowStart, rowEnd);
+    renderRowRuler('blueprint-row-right', rowEnd, rowStart);
 
     // Render grid (with optional mirror)
     const table = document.getElementById('blueprint-grid');
@@ -2094,7 +2121,74 @@ class App {
     }
   }
 
-  _exportBlueprint(gridData, rows, cols, opts) {
+  _fitBlueprintPreview(gridData, rows, cols, opts) {
+    const preview = document.getElementById('blueprint-preview');
+    const paper = document.getElementById('blueprint-paper');
+    const modalBox = document.getElementById('blueprint-modal-box');
+
+    const CELL = 36;         // .grid-table td width/height
+    const RULER_W = 20;      // .row-left / .row-right width
+    const RULER_H = 18;      // col-top / col-bottom height (span padding + font)
+    const PAD = 12;          // .paper-wrap padding
+    const BLOCK = 48;        // .color-block width/height
+    const BLOCK_GAP = 8;     // .color-card gap (row + col)
+    const CARD_ROW_H = 64;   // block(48) + gap(2) + count-text(~14)
+    const CARD_MARGIN = 12;  // .color-card margin-top
+
+    // Paper width (exact: left-ruler + grid + right-ruler + padding)
+    const paperW = RULER_W + cols * CELL + RULER_W + PAD * 2;
+
+    // Color card height
+    const countMap = {};
+    gridData.forEach(row => {
+      row.forEach(cell => {
+        if (cell) {
+          countMap[cell.code] = countMap[cell.code] || { count: 0 };
+          countMap[cell.code].count++;
+        }
+      });
+    });
+    const entryCount = Object.keys(countMap).length;
+    const maxPerRow = Math.max(1, Math.floor((paperW - PAD * 2 + BLOCK_GAP) / (BLOCK + BLOCK_GAP)));
+    const cardRows = entryCount > 0 ? Math.ceil(entryCount / maxPerRow) : 0;
+    const cardH = entryCount > 0
+      ? CARD_MARGIN + cardRows * CARD_ROW_H + Math.max(0, cardRows - 1) * BLOCK_GAP
+      : 0;
+
+    // Text area height
+    const artName = document.getElementById('artwork-name-input')?.value.trim() || '';
+    const showName = opts.showName && artName;
+    const showAuthor = opts.showAuthor && opts.authorName;
+    let textH = 0;
+    if (showName || showAuthor) {
+      textH = 8; // margin-top on text-area
+      if (showName) textH += 22;   // font 16px bold
+      if (showAuthor) textH += 18; // font 14px + margin-top 2px
+    }
+
+    // Paper height = top-ruler + grid + bottom-ruler + color-card + text + padding + buffer
+    const paperH = RULER_H + rows * CELL + RULER_H + cardH + textH + PAD * 2 + 10;
+
+    // Reset
+    paper.style.transform = '';
+    paper.style.transformOrigin = '';
+    preview.style.height = '';
+    preview.style.overflow = '';
+
+    const availW = modalBox.clientWidth - 48;
+    const availH = Math.min(window.innerHeight * 0.85 - 180, 650);
+    if (availW <= 0 || availH <= 0 || paperW <= 0 || paperH <= 0) return;
+
+    const scale = Math.min(availW / paperW, availH / paperH, 1);
+    if (scale < 1) {
+      paper.style.transform = `scale(${scale})`;
+      paper.style.transformOrigin = 'top center';
+      preview.style.height = Math.ceil(paperH * scale) + 'px';
+      preview.style.overflow = 'hidden';
+    }
+  }
+
+  _exportBlueprint(gridData, rows, cols, r1 = 0, c1 = 0, opts) {
     const mirror = opts && opts.mirror;
     const S = 4; // 4x high-res scale
     const CELL = 36 * S;
@@ -2131,7 +2225,8 @@ class App {
     if (showName || showAuthor) textLines = (showName ? 1 : 0) + (showAuthor ? 1 : 0);
     const TEXT_AREA = textLines > 0 ? TEXT_PAD + textLines * TEXT_LINE_H + TEXT_PAD : 0;
 
-    const totalH = PAD + RULER_H + rows * CELL + RULER_H + PAD + CARD_AREA + TEXT_AREA + PAD;
+    const WATERMARK_H = 30 * S;
+    const totalH = PAD + RULER_H + rows * CELL + RULER_H + PAD + CARD_AREA + TEXT_AREA + PAD + WATERMARK_H;
 
     const canvas = document.createElement('canvas');
     canvas.width = totalW;
@@ -2184,20 +2279,25 @@ class App {
     // Column rulers (top & bottom) — rulers stay as-is, not mirrored
     const rulerFontSize = 11 * S;
     ctx.font = rulerFontSize + 'px Arial, sans-serif';
+    const colStart = c1 + 1;
+    const colEnd = c1 + cols;
+    const rowStart = r1 + 1;
+    const rowEnd = r1 + rows;
+
     ctx.fillStyle = '#666666';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     for (let c = 0; c < cols; c++) {
       const cx = ox + c * CELL + CELL / 2;
-      ctx.fillText(String(c + 1), cx, oy - RULER_H / 2);
-      ctx.fillText(String(cols - c), cx, oy + rows * CELL + RULER_H / 2);
+      ctx.fillText(String(colStart + c), cx, oy - RULER_H / 2);
+      ctx.fillText(String(colEnd - c), cx, oy + rows * CELL + RULER_H / 2);
     }
 
     // Row rulers (left & right)
     for (let r = 0; r < rows; r++) {
       const cy = oy + r * CELL + CELL / 2;
-      ctx.fillText(String(r + 1), ox - RULER_W / 2, cy);
-      ctx.fillText(String(rows - r), ox + cols * CELL + RULER_W / 2, cy);
+      ctx.fillText(String(rowStart + r), ox - RULER_W / 2, cy);
+      ctx.fillText(String(rowEnd - r), ox + cols * CELL + RULER_W / 2, cy);
     }
 
     // Color card
@@ -2243,6 +2343,13 @@ class App {
         ctx.fillText('by ' + opts.authorName, totalW / 2, textY + lineNum * TEXT_LINE_H);
       }
     }
+
+    // Watermark
+    ctx.fillStyle = '#d0d0d0';
+    ctx.font = (12 * S) + 'px Arial, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('- Cyberbeads 赛博拼豆 -', totalW / 2, totalH - WATERMARK_H / 2);
 
     // Download
     canvas.toBlob(blob => {

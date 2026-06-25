@@ -1,10 +1,37 @@
 // ========== EXPORT MANAGER ==========
 class ExportManager {
+  // Find the bounding box of all beads, with 2-cell margin on each side.
+  // Returns { r1, c1, r2, c2 } (inclusive), or null if no beads exist.
+  static getBeadBoundingBox(grid) {
+    if (grid.occupiedCells.size === 0) return null;
+    let r1 = Infinity, c1 = Infinity, r2 = -Infinity, c2 = -Infinity;
+    for (const key of grid.occupiedCells) {
+      const [r, c] = key.split(',').map(Number);
+      if (r < r1) r1 = r;
+      if (r > r2) r2 = r;
+      if (c < c1) c1 = c;
+      if (c > c2) c2 = c;
+    }
+    // Add 2-cell margin on each side (allow beyond grid for edge beads)
+    r1 = r1 - 2;
+    c1 = c1 - 2;
+    r2 = r2 + 2;
+    c2 = c2 + 2;
+    return { r1, c1, r2, c2 };
+  }
+
   // Render beads to an offscreen canvas (no download). Used by both export & preview.
-  static exportToCanvas(grid, mode, realisticEdges = false, transparent = false) {
+  // cropBox: { r1, c1, r2, c2 } (inclusive) — if provided, only renders that region.
+  static exportToCanvas(grid, mode, realisticEdges = false, transparent = false, cropBox = null) {
     const cellPx = CONFIG.EXPORT_CELL_PX;
-    const w = grid.cols * cellPx;
-    const h = grid.rows * cellPx;
+    const startR = cropBox ? cropBox.r1 : 0;
+    const startC = cropBox ? cropBox.c1 : 0;
+    const endR = cropBox ? cropBox.r2 : grid.rows - 1;
+    const endC = cropBox ? cropBox.c2 : grid.cols - 1;
+    const rows = endR - startR + 1;
+    const cols = endC - startC + 1;
+    const w = cols * cellPx;
+    const h = rows * cellPx;
     const canvas = document.createElement('canvas');
     canvas.width = w;
     canvas.height = h;
@@ -15,12 +42,12 @@ class ExportManager {
       ctx.fillRect(0, 0, w, h);
     }
 
-    for (let r = 0; r < grid.rows; r++) {
-      for (let c = 0; c < grid.cols; c++) {
+    for (let r = startR; r <= endR; r++) {
+      for (let c = startC; c <= endC; c++) {
         const bead = grid.grid[r][c];
         if (!bead) continue;
-        const cx = c * cellPx + cellPx / 2;
-        const cy = r * cellPx + cellPx / 2;
+        const cx = (c - startC) * cellPx + cellPx / 2;
+        const cy = (r - startR) * cellPx + cellPx / 2;
         const color = bead.color;
         if (color === ERASER_COLOR) continue;
 
