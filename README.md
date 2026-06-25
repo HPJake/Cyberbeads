@@ -1,8 +1,14 @@
-# 🦾 赛博拼豆 Cyber Beads
+# 赛博拼豆 Cyberbeads
 
-**线上拼豆、模拟、拼豆图纸制作工具** — 在浏览器里自由创作熔珠拼豆图案，无需实体材料。
+<img src="images/Cyberbeads_icon.png" alt="Cyberbeads_icon" style="zoom:50%;" />
 
-🎮 **试玩链接**：[hpjake.github.io/Cyberbeads](https://hpjake.github.io/Cyberbeads/)
+**线上拼豆、熨烫模拟、拼豆图纸制作工具** — 在浏览器里自由创作熔珠拼豆图案，无需实体材料。
+
+🎮 **试玩链接**：[https://hpjake.github.io/Cyberbeads/](https://hpjake.github.io/Cyberbeads/)
+
+推荐使用电脑、iPad游玩。
+
+![UI](images/UI.jpg)
 
 ---
 
@@ -17,6 +23,12 @@
 3. **熨烫** — 点击"🔥 熨烫"进入加热模式，在豆子上移动鼠标/手指模拟熨斗加热，豆子逐渐融化变平
 4. **定形** — 点击"✅ 完成定形"锁定作品
 5. **导出** — 导出 PNG 高清图片或拼豆图纸
+
+------
+
+操作界面
+
+![UI](images/UI.jpg)
 
 ---
 
@@ -38,6 +50,8 @@
 - **自定义颜色**：点击"🎨 自选色"打开取色器，支持屏幕取色（Chrome/Edge）
 - **MARD 色号**：支持 MARD 291 标准色号输入，自动匹配最接近的颜色
 
+<img src="images/func_color.png" alt="func_color" style="zoom:30%;" />
+
 ### 熨烫系统
 
 - 进入熨烫模式后，在豆子上**长按/拖拽**模拟加热
@@ -45,11 +59,15 @@
 - **✨ 逼真模式**：开启后熨烫边缘呈波浪扇贝花边，模拟真实熨烫挤压效果
 - 可撤销熨烫步骤，也可退出熨烫继续编辑
 
+![func_heating](images/func_heating.gif)
+
 ### 参考图
 
 - 导入图片作为临摹参考，叠加在画布上
 - 可调节透明度，支持裁切
 - 桌面端另有**浮动参考窗**，可自由拖拽缩放
+
+![func_reference](images/func_reference.gif)
 
 ### 导出模式
 
@@ -69,7 +87,6 @@
 - **四边标尺** — 上下标注列号、左右标注行号，两两对称（上边 1→N，下边 N→1），方便从任意方向数格子
 - **色号图例** — 图纸下方自动罗列所有用到的颜色，每行自适应排版，显示色块 + 色号 + 用量（×N）
 - **作品名 / 作者** — 可选显示，展示在图例下方
-- **底部水印** — 淡灰色 `- Cyberbeads 赛博拼豆 -`
 
 **自动裁切：**
 
@@ -80,6 +97,10 @@
 **镜像模式：**
 
 勾选「🔁 镜像翻转」后，图纸左右镜像输出。适合熨烫后从背面阅读图纸的场景（熨烫面朝下时，背面图案是镜像的）。
+
+![func_blueprint](images/func_blueprint.gif)
+
+![Heart_blueprint](images/Heart_blueprint.png)
 
 ### 存档
 
@@ -92,6 +113,8 @@
 - 将拼豆作品或 PNG 图片布置在页面背景中
 - 支持拖拽、缩放、图层管理
 - 拼豆存档可在三种渲染效果间切换
+
+![func_desk](images/func_desk.gif)
 
 ---
 
