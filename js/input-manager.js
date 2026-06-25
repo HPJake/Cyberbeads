@@ -2,7 +2,7 @@
 class InputManager {
   constructor(app) {
     this.app = app;
-    this.container = document.getElementById('canvas-container');
+    this.container = document.getElementById('canvas-zoom-wrapper');
     this.grid = app.grid;
     this.renderer = app.renderer;
 
@@ -15,6 +15,15 @@ class InputManager {
     this.isIroning = false;
     this.ironLastHeatCell = null;
     this.lastMoveTime = 0;  // throttle non-ironing pointermove
+
+    // Pan state (hand tool)
+    this.panStartX = 0;
+    this.panStartY = 0;
+    this.panScrollX = 0;
+    this.panScrollY = 0;
+    this.clientX = 0;
+    this.clientY = 0;
+    this.scrollEl = document.getElementById('app');
 
     this._setupEvents();
   }
@@ -59,6 +68,8 @@ class InputManager {
     const rect = this.container.getBoundingClientRect();
     this.pointerX = (e.clientX - rect.left) / this.app.zoomLevel;
     this.pointerY = (e.clientY - rect.top) / this.app.zoomLevel;
+    this.clientX = e.clientX;
+    this.clientY = e.clientY;
   }
 
   _getCell() {
@@ -66,15 +77,28 @@ class InputManager {
   }
 
   _onDown() {
-    const cell = this._getCell();
-    if (!cell) return;
-
+    // Ironing takes priority over all tools
     if (this.isIroning) {
-      this._ironAt(cell);
+      const cell = this._getCell();
+      if (cell) this._ironAt(cell);
       return;
     }
 
     const tool = this.app.toolDrawer.getTool();
+
+    // Hand (pan) tool — works anywhere, including inside grid
+    if (tool === 'hand') {
+      this.panStartX = this.clientX;
+      this.panStartY = this.clientY;
+      this.panScrollX = this.scrollEl.scrollLeft;
+      this.panScrollY = this.scrollEl.scrollTop;
+      document.getElementById('canvas-zoom-wrapper').classList.add('grabbing');
+      return;
+    }
+
+    const cell = this._getCell();
+    if (!cell) return;
+
     if (tool === 'tweezers') {
       this._tweezerPlace(cell);
     } else {
@@ -88,9 +112,20 @@ class InputManager {
   _onMove() {
     if (!this.pointerDown) return;
 
+    // Ironing takes priority over all tools
     if (this.isIroning) {
       const cell = this._getCell();
       if (cell) this._ironAt(cell);
+      return;
+    }
+
+    // Hand (pan) tool — scroll the entire page (#app container)
+    const tool = this.app.toolDrawer.getTool();
+    if (tool === 'hand') {
+      const dx = this.clientX - this.panStartX;
+      const dy = this.clientY - this.panStartY;
+      this.scrollEl.scrollLeft = this.panScrollX - dx;
+      this.scrollEl.scrollTop = this.panScrollY - dy;
       return;
     }
 
@@ -99,7 +134,6 @@ class InputManager {
     if (now - this.lastMoveTime < 12) return;
     this.lastMoveTime = now;
 
-    const tool = this.app.toolDrawer.getTool();
     if (tool === 'tweezers') return; // No drag for tweezers
 
     const cell = this._getCell();
@@ -110,13 +144,20 @@ class InputManager {
   }
 
   _onUp() {
+    // Ironing takes priority
     if (this.isIroning) {
       this.ironLastHeatCell = null;
       if (this.app.ironingSys) this.app.ironingSys.finishStroke();
       return;
     }
 
+    // Hand (pan) tool — just remove grabbing cursor
     const tool = this.app.toolDrawer.getTool();
+    if (tool === 'hand') {
+      document.getElementById('canvas-zoom-wrapper').classList.remove('grabbing');
+      return;
+    }
+
     if (tool === 'tweezers') {
       // Snapshot taken per click in _tweezerPlace
     } else {
@@ -187,6 +228,15 @@ class InputManager {
 
   setIroningMode(active) {
     this.isIroning = active;
+    if (active) {
+      // Remove hand cursor during ironing
+      document.getElementById('canvas-zoom-wrapper').classList.remove('hand-cursor', 'grabbing');
+    } else {
+      // Restore hand cursor if hand tool is selected
+      if (this.app.toolDrawer.getTool() === 'hand') {
+        document.getElementById('canvas-zoom-wrapper').classList.add('hand-cursor');
+      }
+    }
   }
 
   getPointerPos() {

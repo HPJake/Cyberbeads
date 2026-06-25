@@ -106,7 +106,7 @@ class App {
     // Ruler toggle
     document.getElementById('ruler-toggle').addEventListener('change', () => {
       this.renderer.showRulers = document.getElementById('ruler-toggle').checked;
-      this.renderer.resize();
+      this.renderer.resize(); this._applyZoom();
       this.renderer.drawPegboard();
       this.beadDirty = true;
       this._positionSideControls();
@@ -200,7 +200,7 @@ class App {
       const s = this._pendingResize || CONFIG.DEFAULT_GRID;
       this.grid.resize(s, s);
       this.ironingSys.cancel();
-      this.renderer.resize();
+      this.renderer.resize(); this._applyZoom();
       this.renderer.drawPegboard();
       this.renderer.drawAllBeads();
       this.beadDirty = true;
@@ -456,15 +456,28 @@ class App {
     return `rgb(${Math.round((r+m)*255)},${Math.round((g+m)*255)},${Math.round((b+m)*255)})`;
   }
 
+  _applyZoom() {
+    const wrapper = document.getElementById('canvas-zoom-wrapper');
+    const container = document.getElementById('canvas-container');
+    const internalW = this.renderer.canvasW + this.renderer.offsetX * 2;
+    const internalH = this.renderer.canvasH + this.renderer.offsetY * 2;
+    const zoom = this.zoomLevel;
+    // Wrapper provides layout size (creates scroll overflow on #app)
+    wrapper.style.width = (internalW * zoom) + 'px';
+    wrapper.style.height = (internalH * zoom) + 'px';
+    // Container uses CSS transform for crisp rendering
+    container.style.width = internalW + 'px';
+    container.style.height = internalH + 'px';
+    container.style.transform = `scale(${zoom})`;
+  }
+
   _initZoom() {
     this.zoomLevel = 1.0;
-    const container = document.getElementById('canvas-container');
+    const wrapper = document.getElementById('canvas-zoom-wrapper');
     const indicator = document.getElementById('zoom-indicator');
     let hideTimeout = null;
     let initialPinchDist = 0;
     let initialZoom = 1;
-
-    container.style.transformOrigin = '50% 0%';
 
     const showIndicator = () => {
       indicator.textContent = Math.round(this.zoomLevel * 100) + '%';
@@ -473,18 +486,18 @@ class App {
       hideTimeout = setTimeout(() => indicator.classList.remove('visible'), 1500);
     };
 
-    container.addEventListener('wheel', (e) => {
+    wrapper.addEventListener('wheel', (e) => {
       e.preventDefault();
       const delta = -e.deltaY * 0.001;
       this.zoomLevel = clamp(this.zoomLevel + delta * this.zoomLevel, 0.2, 3.0);
-      container.style.transform = `scale(${this.zoomLevel})`;
+      this._applyZoom();
       showIndicator();
       this._positionSideControls();
       if (this._debounceSave) this._debounceSave();
     }, { passive: false });
 
     // Touch pinch-to-zoom
-    container.addEventListener('touchstart', (e) => {
+    wrapper.addEventListener('touchstart', (e) => {
       if (e.touches.length === 2) {
         e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -494,7 +507,7 @@ class App {
       }
     }, { passive: false });
 
-    container.addEventListener('touchmove', (e) => {
+    wrapper.addEventListener('touchmove', (e) => {
       if (e.touches.length === 2) {
         e.preventDefault();
         const dx = e.touches[0].clientX - e.touches[1].clientX;
@@ -502,13 +515,14 @@ class App {
         const dist = Math.hypot(dx, dy);
         const scale = dist / initialPinchDist;
         this.zoomLevel = clamp(initialZoom * scale, 0.2, 3.0);
-        container.style.transform = `scale(${this.zoomLevel})`;
+        this._applyZoom();
         showIndicator();
         this._positionSideControls();
         if (this._debounceSave) this._debounceSave();
       }
     }, { passive: false });
 
+    this._applyZoom(); // set initial CSS dimensions
     showIndicator();
   }
 
@@ -1007,8 +1021,7 @@ class App {
       // Zoom
       if (app.zoomLevel != null) {
         this.zoomLevel = app.zoomLevel;
-        const container = document.getElementById('canvas-container');
-        if (container) container.style.transform = `scale(${this.zoomLevel})`;
+        this._applyZoom();
       }
     }
 
@@ -1032,7 +1045,7 @@ class App {
 
   _startFresh() {
     this.grid.snapshot();
-    this.renderer.resize();
+    this.renderer.resize(); this._applyZoom();
     this.renderer.drawPegboard();
     this.renderer.drawAllBeads();
     this._updateUndoRedoButtons();
@@ -1058,7 +1071,7 @@ class App {
       modal.classList.remove('active');
       // The save data is already in localStorage, so grid.load() will read it
       this._restoreAppState(savePreview);
-      this.renderer.resize();
+      this.renderer.resize(); this._applyZoom();
       this.renderer.drawPegboard();
       this.renderer.drawAllBeads();
       this._updateUndoRedoButtons();
@@ -1148,7 +1161,7 @@ class App {
           localStorage.setItem('cyber-beads-save', JSON.stringify(data));
           const success = this._restoreAppState(data);
           if (success) {
-            this.renderer.resize();
+            this.renderer.resize(); this._applyZoom();
             this.renderer.drawPegboard();
             this.renderer.drawAllBeads();
             this._updateUndoRedoButtons();
@@ -1628,15 +1641,12 @@ class App {
 
   _positionSideControls() {
     const area = document.getElementById('canvas-area');
-    const container = document.getElementById('canvas-container');
-    if (!area || !container) return;
+    const wrapper = document.getElementById('canvas-zoom-wrapper');
+    if (!area || !wrapper) return;
     const gap = 8;
-    // Account for CSS transform scale (zoom) — offsetLeft is pre-transform,
-    // but visually the canvas scales from center-top (transform-origin: 50% 0%)
-    const zoom = this.zoomLevel || 1;
-    const visualShift = container.offsetWidth * (1 - zoom) / 2;
-    const visualLeft = container.offsetLeft + visualShift;
-    const visualRight = visualLeft + container.offsetWidth * zoom;
+    // Wrapper offsetWidth = visual width (already zoomed)
+    const visualLeft = wrapper.offsetLeft;
+    const visualRight = visualLeft + wrapper.offsetWidth;
 
     // Left panel (reference controls)
     const leftControls = document.getElementById('ref-side-controls');

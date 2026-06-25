@@ -135,11 +135,13 @@
       </label>
     </div>
     <!-- Canvas Stack -->
-    <div id="canvas-container">
-      <canvas id="bg-canvas"></canvas>
-      <canvas id="ref-canvas"></canvas>
-      <canvas id="bead-canvas"></canvas>
-      <canvas id="fx-canvas"></canvas>
+    <div id="canvas-zoom-wrapper">
+      <div id="canvas-container">
+        <canvas id="bg-canvas"></canvas>
+        <canvas id="ref-canvas"></canvas>
+        <canvas id="bead-canvas"></canvas>
+        <canvas id="fx-canvas"></canvas>
+      </div>
     </div>
   </div>
 
@@ -161,6 +163,10 @@
   <div class="tool-card" id="tool-beadpen" data-tool="beadpen">
     <canvas width="60" height="160"></canvas>
     <div class="color-dot" style="top:3px;left:24px;display:none;"></div>
+  </div>
+  <div class="tool-card" id="tool-hand" data-tool="hand">
+    <canvas width="60" height="160"></canvas>
+    <div class="color-dot" style="top:18px;left:24px;display:none;"></div>
   </div>
 </div>
 

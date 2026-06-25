@@ -296,7 +296,7 @@ class Renderer {
   drawToolCursor(x, y, tool, color, penInkLevel) {
     const ctx = this.fxCtx;
     if (x < this.offsetX || x > this.offsetX + this.canvasW || y < this.offsetY || y > this.offsetY + this.canvasH) return;
-    if (tool === 'none') return;
+    if (tool === 'none' || tool === 'hand') return;
 
     ctx.save();
     ctx.translate(x, y);
