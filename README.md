@@ -1,6 +1,6 @@
 # 赛博拼豆 Cyberbeads
 
-<img src="images/Cyberbeads_icon.png" alt="Cyberbeads_icon" style="zoom:50%;" />
+<img src="images/Cyberbeads_icon.png" alt="Cyberbeads_icon" style="zoom:33%;" />
 
 **线上拼豆、熨烫模拟、拼豆图纸制作工具** — 在浏览器里自由创作熔珠拼豆图案，无需实体材料。
 
@@ -8,8 +8,7 @@
 
 推荐使用电脑、iPad游玩。
 
-![UI](images/UI.jpg)
-
+<img src="images/UI.jpg" alt="UI" />
 ---
 
 ## 🎯 游戏规则
@@ -28,8 +27,7 @@
 
 操作界面
 
-![UI](images/UI.jpg)
-
+<img src="UI_computer_1.jpg" alt="UI_computer" />
 ---
 
 ## 🖱 操作逻辑
@@ -60,6 +58,7 @@
 - 可撤销熨烫步骤，也可退出熨烫继续编辑
 
 ![func_heating](images/func_heating.gif)
+<img src="images/func_heating.gif" alt="熨烫系统"/>
 
 ### 参考图
 
@@ -67,7 +66,7 @@
 - 可调节透明度，支持裁切
 - 桌面端另有**浮动参考窗**，可自由拖拽缩放
 
-![func_reference](images/func_reference.gif)
+<img src="images/func_heating.gif" alt="熨烫系统"/>
 
 ### 导出模式
 
@@ -114,8 +113,7 @@
 - 支持拖拽、缩放、图层管理
 - 拼豆存档可在三种渲染效果间切换
 
-![func_desk](images/func_desk.gif)
-
+<img src="images/func_desk.gif" alt="布置桌面"/>
 ---
 
 ## 📱 手机端与电脑端的区别
